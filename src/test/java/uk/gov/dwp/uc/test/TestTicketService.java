@@ -41,7 +41,7 @@ public class TestTicketService {
 	}
 
 	@Test
-	public void testPurchasingInfantTicketWithoutAdult() {
+	public void testPurchasingInfantTicketsWithoutAdult() {
 		try {
 			TicketTypeRequest ticketTypeRequestInfant = new TicketTypeRequest(Type.INFANT, 5);
 			TicketServiceImpl ticketService = new TicketServiceImpl();
@@ -54,7 +54,7 @@ public class TestTicketService {
 	}
 
 	@Test
-	public void testPurchasingChildTicketWithoutAdult() {
+	public void testPurchasingChildTicketsWithoutAdult() {
 		try {
 			TicketTypeRequest ticketTypeRequestChild = new TicketTypeRequest(Type.CHILD, 5);
 			TicketServiceImpl ticketService = new TicketServiceImpl();
@@ -78,7 +78,7 @@ public class TestTicketService {
 	}
 
 	@Test
-	public void testPurchasingAdultTickets() {
+	public void testPurchasingOnlyAdultTickets() {
 		TicketTypeRequest ticketTypeRequestAdult = new TicketTypeRequest(Type.ADULT, 2);
 		TicketTypeRequest ticketTypeRequestChild = new TicketTypeRequest(Type.ADULT, 5);
 		TicketTypeRequest ticketTypeRequestInfant = new TicketTypeRequest(Type.ADULT, 6);

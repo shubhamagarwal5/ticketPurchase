@@ -13,40 +13,50 @@ public class TicketServiceImpl implements TicketService {
 	/**
 	 * Should only have private methods other than the one below.
 	 */
-
-	@Override
-	public void purchaseTickets(Long accountId, TicketTypeRequest... ticketTypeRequests)
-			throws InvalidPurchaseException {
-		Map<Type, Integer> ticketPrices = TicketPriceDao.getTicketPrice();
+	private int calculateTotalSeatsToAllocate(TicketTypeRequest... ticketTypeRequests) {
 		int totalSeatsToAllocate = 0;
-		int totalAmountToPay = 0;
-		int adult = 0;
-		int child = 0;
-		int infant = 0;
+		int infantTicket = 0;
+		int childTicket = 0;
+		int adultTicket = 0;
 		for (TicketTypeRequest ticketTypeRequest : ticketTypeRequests) {
-
-			if (ticketTypeRequest.getNoOfTickets() > 20) {
-				throw new InvalidPurchaseException("Only a maximum of 20 tickets that can be purchased at a time.");
+			if (ticketTypeRequest.getTicketType() == Type.ADULT) {
+				adultTicket += ticketTypeRequest.getNoOfTickets();
 			}
+			else if (ticketTypeRequest.getTicketType() == Type.CHILD) {
+				childTicket += ticketTypeRequest.getNoOfTickets();
+			}
+			else if (ticketTypeRequest.getTicketType() == Type.INFANT) {
+				infantTicket += ticketTypeRequest.getNoOfTickets();
+			}
+		}
+		totalSeatsToAllocate  = childTicket+ adultTicket;
+		if(infantTicket + childTicket+ adultTicket>20) {
+			throw new InvalidPurchaseException("Only a maximum of 20 tickets that can be purchased at a time.");
+		}
+		if ((infantTicket > 0 || childTicket > 0) && (adultTicket == 0)) {
+			throw new InvalidPurchaseException("Child and Infant tickets cannot be purchased without purchasing an Adult ticket.");
+		}
+		return totalSeatsToAllocate;
+	}
+	
+	private int calculateTotalAmountToPay(TicketTypeRequest... ticketTypeRequests) {
+		int totalAmountToPay = 0;
+		Map<Type, Integer> ticketPrices = TicketPriceDao.getTicketPrice();
+		for (TicketTypeRequest ticketTypeRequest : ticketTypeRequests) {
 			if (ticketTypeRequest.getTicketType() == Type.ADULT) {
 				totalAmountToPay += ticketPrices.get(Type.ADULT) * ticketTypeRequest.getNoOfTickets();
-				adult += ticketTypeRequest.getNoOfTickets();
 			}
 			if (ticketTypeRequest.getTicketType() == Type.CHILD) {
 				totalAmountToPay += ticketPrices.get(Type.CHILD) * ticketTypeRequest.getNoOfTickets();
-				child += ticketTypeRequest.getNoOfTickets();
-			}
-			if (ticketTypeRequest.getTicketType() == Type.INFANT) {
-				infant += ticketTypeRequest.getNoOfTickets();
 			}
 		}
-		if(infant+child+adult>20) {
-			throw new InvalidPurchaseException("Only a maximum of 20 tickets that can be purchased at a time.");
-		}
-		if ((infant > 0 || child > 0) && (adult == 0)) {
-			throw new InvalidPurchaseException("Child and Infant tickets cannot be purchased without purchasing an Adult ticket.");
-		}
-		totalSeatsToAllocate = adult + child;
+		return totalAmountToPay;
+	}
+	@Override
+	public void purchaseTickets(Long accountId, TicketTypeRequest... ticketTypeRequests)
+			throws InvalidPurchaseException {
+		int totalSeatsToAllocate = calculateTotalSeatsToAllocate(ticketTypeRequests);
+		int totalAmountToPay = calculateTotalAmountToPay(ticketTypeRequests);
 		TicketPaymentServiceImpl ticketPaymentServiceImpl = new TicketPaymentServiceImpl();
 		ticketPaymentServiceImpl.makePayment(accountId, totalAmountToPay);
 		SeatReservationServiceImpl seatReservationServiceImpl = new SeatReservationServiceImpl();
